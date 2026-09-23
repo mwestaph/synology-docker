@@ -1,0 +1,20 @@
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Docker override files
+compose.override.yaml
+docker-compose.override.yml
+
+# macOS
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+
+# Backups and temporary files
+*.bak
+*.tmp
+*~
