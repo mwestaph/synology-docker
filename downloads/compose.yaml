@@ -1,1 +1,17 @@
-
+# Copy to a private .env file and replace the example values before deployment.
+# Never commit .env or real credentials to the public repository.
+APPDATA_ROOT=/path/to/docker/appdata
+DOWNLOADS_ROOT=/path/to/downloads
+AUDIO_ROOT=/path/to/audio
+WRESTLING_ROOT=/path/to/wrestling
+MMA_ROOT=/path/to/mma
+LAN_SUBNET=192.0.2.0/24
+PUID=1000
+PGID=1000
+TZ=Etc/UTC
+# Use values from your VPN provider's WireGuard configuration.
+WIREGUARD_ENDPOINT_IP=192.0.2.1
+WIREGUARD_ENDPOINT_PORT=51820
+WIREGUARD_PUBLIC_KEY=replace-with-server-public-key
+WIREGUARD_PRIVATE_KEY=replace-with-private-key
+WIREGUARD_ADDRESSES=10.0.0.2/32
