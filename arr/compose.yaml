@@ -1,1 +1,149 @@
+services:
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    ports:
+      - "8135:6767"
+    volumes:
+      - ${APPDATA_ROOT}/bazarr:/config
+      - ${MOVIES_ROOT}:/movies
+      - ${TV_ROOT}:/tv
+    networks:
+      - media_net
 
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      LOG_HTML: "false"
+      TZ: ${TZ}
+    ports:
+      - "8092:8191"
+    networks:
+      - media_net
+
+  lidarr:
+    image: ghcr.io/hotio/lidarr:pr-plugins
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    ports:
+      - "8131:8686"
+    volumes:
+      - ${APPDATA_ROOT}/lidarr:/config
+      - ${MUSIC_ROOT}:/music
+      - "${HOLIDAY_MUSIC_ROOT}:/holiday music"
+      - ${MUSIC_INCOMING_ROOT}:/Incoming
+      - ${DOWNLOADS_ROOT}:/downloads
+    networks:
+      - media_net
+
+  nzbhydra2:
+    image: ghcr.io/linuxserver/nzbhydra2
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    labels:
+      - "wud.trigger.include=docker.local"
+    ports:
+      - "5076:5076"
+    volumes:
+      - ${APPDATA_ROOT}/nzbhydra2:/config
+    networks:
+      - media_net
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      PROWLARR__SERVER__PORT: "9696"
+      PROWLARR__SERVER__BINDADDRESS: "*"
+    ports:
+      - "8130:9696"
+    volumes:
+      - ${APPDATA_ROOT}/prowlarr:/config
+      - ${DOWNLOADS_ROOT}:/downloads
+    networks:
+      - media_net
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    ports:
+      - "8132:7878"
+    volumes:
+      - ${APPDATA_ROOT}/radarr:/config
+      - ${DOWNLOADS_ROOT}:/downloads
+      - ${MOVIES_ROOT}:/movies
+      - ${BOXING_ROOT}:/boxing
+      - ${KICKBOXING_ROOT}:/kickboxing
+      - ${MMA_ROOT}:/mma
+      - ${WRESTLING_ROOT}:/wrestling
+    networks:
+      - media_net
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    ports:
+      - "8133:8989"
+    volumes:
+      - ${APPDATA_ROOT}/sonarr:/config
+      - ${TV_ROOT}:/tv
+      - ${DOWNLOADS_ROOT}:/downloads
+      - ${MEDIA_ROOT}:/media
+    networks:
+      - media_net
+
+  sportarr:
+    image: sportarr/sportarr:latest@sha256:4d2165ed25840a2d80ca655c616e754a0867b551f21c55dff4eab15529098399
+    restart: unless-stopped
+    ports:
+      - "1867:1867"
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      UMASK: "022"
+      TZ: ${TZ}
+    volumes:
+      - ${APPDATA_ROOT}/sportarr/config:/config
+      - ${APPDATA_ROOT}/sportarr/data:/data
+      - ${DOWNLOADS_ROOT}:/downloads
+      - ${SPORTS_ROOT}:/sports
+      - ${UFC_ROOT}:/UFC
+      - ${NFL_ROOT}:/NFL
+      - ${NCAAF_ROOT}:/NCAAF
+      - "${WWE_PPV_ROOT}:/WWE PPV"
+      - "${AEW_PPV_ROOT}:/AEW PPV"
+      - ${AAA_ROOT}:/AAA
+    networks:
+      - media_net
+
+networks:
+  media_net:
+    external: true
