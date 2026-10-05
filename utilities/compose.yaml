@@ -1,0 +1,53 @@
+services:
+  dashdot:
+    image: mauricenino/dashdot@sha256:434a54d2937411a06b09c50e55709cc7d3b092c0fe173a9e5c986f9b5a33c7c6
+    container_name: utilities-dashdot
+    environment:
+      DASHDOT_ENABLE_CPU_TEMPS: "true"
+    networks:
+      - media_net
+    ports:
+      - "8124:3001"
+    restart: unless-stopped
+    volumes:
+      - /:/mnt/host:ro
+
+  dupeguru:
+    image: jlesage/dupeguru@sha256:a2b79ff9ebd3ebf986ddc2e243490ffac42432125cc9172793600a1e2c0025a5
+    container_name: utilities-dupeguru
+    environment:
+      DISPLAY_HEIGHT: "900"
+      DISPLAY_WIDTH: "1600"
+      GROUP_ID: ${PGID}
+      TZ: ${TZ}
+      USER_ID: ${PUID}
+    networks:
+      - media_net
+    ports:
+      - "8138:5800"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/dupeguru:/config
+      - ${APPDATA_ROOT}/dupeguru/trash:/trash
+      - ${STORAGE_ROOT}:/storage
+
+  homarr:
+    image: ghcr.io/homarr-labs/homarr@sha256:7d87f7fdd35f8bbee1b922b9b74fad8ce9967a1a66b8c6db1a168780c03d693b
+    container_name: utilities-homarr
+    environment:
+      SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY}
+      TZ: ${TZ}
+    labels:
+      - "wud.trigger.include=docker.local"
+    networks:
+      - media_net
+    ports:
+      - "8122:7575"
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${APPDATA_ROOT}/homarr:/appdata
+
+networks:
+  media_net:
+    external: true
