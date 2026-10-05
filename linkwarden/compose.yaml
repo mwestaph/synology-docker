@@ -1,0 +1,39 @@
+services:
+  linkwarden:
+    image: ghcr.io/linkwarden/linkwarden@sha256:6902e62a6d68e1906045310dbf9b2df7f3d784a7b2e9d0f02c23666023791634
+    container_name: linkwarden-linkwarden
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+    depends_on:
+      postgresql:
+        condition: service_started
+    labels:
+      - "wud.trigger.include=docker.local"
+    networks:
+      - private
+      - public
+
+  postgresql:
+    image: postgres:15@sha256:926f8799aef36e00001cfe15fba7abbd37d3c5224ea57e4c858e4bb670f10561
+    container_name: linkwarden-postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: linkwarden
+      POSTGRES_USER: linkwarden
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${APPDATA_ROOT}/linkwarden/postgresql:/var/lib/postgresql/data
+    networks:
+      private:
+        aliases:
+          - db
+
+networks:
+  private:
+    internal: true
+  public:
