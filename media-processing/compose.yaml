@@ -1,0 +1,66 @@
+services:
+  channels-dvr:
+    image: fancybits/channels-dvr:latest@sha256:438e362cf739f4d002ecdcc17baee6917ecd22a8d9d4aa044288042c1039d591
+    network_mode: host
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ${APPDATA_ROOT}/channels-dvr:/channels-dvr
+      - ${DVR_RECORDINGS_ROOT}:/shares/DVR
+
+  fileflows:
+    image: revenz/fileflows:stable
+    restart: unless-stopped
+    ports:
+      - "8141:5000"
+    environment:
+      TZ: ${TZ}
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TempPathHost: ${FILEFLOWS_TEMP_ROOT}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${APPDATA_ROOT}/fileflows:/app/Data
+      - ${FILEFLOWS_TEMP_ROOT}:/temp
+    networks:
+      - media_net
+
+  plex:
+    image: plexinc/pms-docker:latest
+    container_name: media-processing-plex
+    network_mode: host
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      TZ: ${TZ}
+      PLEX_UID: ${PLEX_UID}
+      PLEX_GID: ${PLEX_GID}
+    volumes:
+      - ${APPDATA_ROOT}/plex:/config
+      - ${APPDATA_ROOT}/plex/transcode:/transcode
+      - ${MEDIA_ROOT}:/volume1/Plex
+
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    labels:
+      - "wud.tag.include=^latest$"
+      - "wud.watch.digest=true"
+    restart: unless-stopped
+    ports:
+      - "8121:8181"
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+    volumes:
+      - ${APPDATA_ROOT}/tautulli:/config
+    networks:
+      - media_net
+
+networks:
+  media_net:
+    external: true
