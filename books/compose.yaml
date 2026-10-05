@@ -1,0 +1,71 @@
+services:
+  calibre:
+    image: lscr.io/linuxserver/calibre@sha256:2e8a99a474d42d1ca13970d74ab83da5da93a1cf0c75e194ce696eceb3e20daa
+    container_name: books-calibre
+    environment:
+      PGID: ${PGID}
+      PUID: ${PUID}
+      TZ: ${TZ}
+    networks:
+      - media_net
+    ports:
+      - "8142:8080"
+      - "8143:8181"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/calibre:/config
+      - ${IMPORT_ROOT}:/import
+      - ${BOOKS_ROOT}:/books
+
+  kapowarr:
+    image: mrcas/kapowarr@sha256:d455797e4f2c5b1a8ccc5ce05c427f1af2179451bb1af195ca3fa8c3e928623b
+    container_name: books-kapowarr
+    environment:
+      PGID: ${PGID}
+      PUID: ${PUID}
+      TZ: ${TZ}
+    networks:
+      - media_net
+    ports:
+      - "8136:5656"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/kapowarr:/app/db
+      - ${DOWNLOADS_ROOT}:/app/temp_downloads
+      - ${COMICS_ROOT}:/comics
+
+  komga:
+    image: gotson/komga@sha256:6c2a967bbe9acefd05933b2eb498f34afe96a83c6f7f8ab0acb512a1bb3ab50f
+    container_name: books-komga
+    environment:
+      TZ: ${TZ}
+    networks:
+      - media_net
+    ports:
+      - "25600:25600"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/komga:/config
+      - ${COMICS_ROOT}:/comics
+
+  lazylibrarian:
+    image: lscr.io/linuxserver/lazylibrarian@sha256:8fd495824e5625764d74e3f385f69c81c2b1fed0903fb3aa7e2e8b4aae5b22eb
+    container_name: books-lazylibrarian
+    environment:
+      PGID: ${PGID}
+      PUID: ${PUID}
+      TZ: ${TZ}
+    networks:
+      - media_net
+    ports:
+      - "8140:5299"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/lazylibrarian:/config
+      - ${DOWNLOADS_ROOT}:/downloads
+      - ${AUDIOBOOKS_ROOT}:/audiobooks
+      - ${BOOKS_ROOT}:/books
+
+networks:
+  media_net:
+    external: true
