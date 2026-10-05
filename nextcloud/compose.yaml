@@ -1,0 +1,60 @@
+services:
+  nextcloud:
+    image: nextcloud:30-apache@sha256:fb966733647ea03f0446b0c22eac9733c8eb616d37b960caca9d4c3010e14a08
+    container_name: nextcloud-app
+    restart: unless-stopped
+    ports:
+      - "8125:80"
+    environment:
+      TZ: ${TZ}
+      POSTGRES_HOST: nextcloud-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+      REDIS_HOST: nextcloud-redis
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+    depends_on:
+      postgresql:
+        condition: service_started
+      redis:
+        condition: service_started
+    volumes:
+      - ${APPDATA_ROOT}/nextcloud/html:/var/www/html
+      - ${APPDATA_ROOT}/nextcloud/config:/var/www/html/config
+      - ${APPDATA_ROOT}/nextcloud/custom_apps:/var/www/html/custom_apps
+      - ${APPDATA_ROOT}/nextcloud/data:/var/www/html/data
+    networks:
+      - private
+      - public
+
+  postgresql:
+    image: postgres:16@sha256:c1b3783309b6499c795eed7c20135a1a4d25cae1b575c3d52c6f536129a1b109
+    container_name: nextcloud-postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+    volumes:
+      - ${APPDATA_ROOT}/nextcloud/postgresql:/var/lib/postgresql/data
+    networks:
+      private:
+        aliases:
+          - nextcloud-db
+
+  redis:
+    image: redis:7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    container_name: nextcloud-cache
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/nextcloud/redis:/data
+    networks:
+      private:
+        aliases:
+          - nextcloud-redis
+
+networks:
+  private:
+    internal: true
+  public:
