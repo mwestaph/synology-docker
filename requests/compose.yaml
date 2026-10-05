@@ -1,0 +1,98 @@
+services:
+  apprise:
+    image: caronc/apprise@sha256:feb3ad42d280bca0c58fdff6f77f46e2586a65bbc6d2bff614d31245ff8a399c
+    container_name: requests-apprise
+    environment:
+      TZ: ${TZ}
+    networks:
+      - requests_private
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/apprise:/config
+      - ${APPDATA_ROOT}/apprise/attach:/attach
+      - ${APPDATA_ROOT}/apprise/plugin:/plugin
+
+  cleanarr:
+    image: selexin/cleanarr@sha256:ecd50ba2d3c01b8b1af182c77d7937d2618f386224e2f6504b989e96574f36b3
+    container_name: requests-cleanarr
+    environment:
+      PLEX_BASE_URL: ${PLEX_BASE_URL}
+      PLEX_TOKEN: ${PLEX_TOKEN}
+      TZ: ${TZ}
+    networks:
+      - media_net
+    ports:
+      - "8137:80"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/cleanarr:/config
+
+  kometa:
+    image: kometateam/kometa@sha256:6c3971a4aaa928b045e5f22514196b6db7f9b2b186158ebfe3239f4b328dfb0a
+    container_name: requests-kometa
+    environment:
+      PGID: ${PGID}
+      PUID: ${PUID}
+      TZ: ${TZ}
+    networks:
+      - media_net
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/kometa:/config
+
+  maintainerr:
+    image: ghcr.io/maintainerr/maintainerr:latest
+    container_name: requests-maintainerr
+    environment:
+      TZ: ${TZ}
+    labels:
+      - "wud.trigger.include=docker.local"
+    networks:
+      - media_net
+      - requests_private
+    ports:
+      - "8139:6246"
+    restart: unless-stopped
+    user: "${MAINTAINERR_UID}:${PGID}"
+    volumes:
+      - ${APPDATA_ROOT}/maintainerr:/opt/data
+      - ${MEDIA_ROOT}:/media
+
+  relay:
+    # This image is built locally; its source is not included in this repository.
+    image: media-maintainerr-apprise-relay
+    container_name: relay
+    environment:
+      APPRISE_URL: http://apprise:8000/notify/apprise
+      LISTEN_PORT: "9100"
+    networks:
+      requests_private:
+        aliases:
+          - maintainerr-apprise-relay
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+
+  requests-seerr:
+    image: ghcr.io/seerr-team/seerr@sha256:f4768de5f616248d723e05891f3345a1402123775d03bf0890dbfedc0831bda1
+    container_name: requests-seerr
+    environment:
+      PGID: ${PGID}
+      PUID: ${PUID}
+      TZ: ${TZ}
+    init: true
+    networks:
+      - media_net
+    ports:
+      - "8120:5055"
+    restart: unless-stopped
+    volumes:
+      - ${APPDATA_ROOT}/seerr:/app/config
+
+networks:
+  media_net:
+    external: true
+  requests_private:
+    driver: bridge
