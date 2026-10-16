@@ -103,28 +103,6 @@ services:
       - media_net
     restart: unless-stopped
 
-  pwtorrents-recovery:
-    image: python:3.14-alpine3.24
-    network_mode: "service:gluetun"
-    depends_on:
-      gluetun:
-        condition: service_healthy
-      qbittorrent:
-        condition: service_started
-    user: "1024:100"
-    read_only: true
-    environment:
-      PYTHONDONTWRITEBYTECODE: "1"
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    command: ["python", "-u", "/app/recover.py"]
-    volumes:
-      - /volumeUSB1/usbshare/docker/appdata/qbittorrent/pwtorrents-recovery/recover.py:/app/recover.py:ro
-      - /volumeUSB1/usbshare/docker/appdata/qbittorrent/pwtorrents-recovery/credentials.toml:/config/credentials.toml:ro
-    restart: unless-stopped
-
 networks:
   media_net:
     external: true
