@@ -6,13 +6,13 @@ services:
     ports:
       - "8125:80"
     environment:
-      TZ: ${TZ}
+      TZ: America/Los_Angeles
       POSTGRES_HOST: nextcloud-db
       POSTGRES_DB: nextcloud
       POSTGRES_USER: nextcloud
       POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
       REDIS_HOST: nextcloud-redis
-      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_USER: admin
       NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
     depends_on:
       postgresql:
@@ -20,10 +20,10 @@ services:
       redis:
         condition: service_started
     volumes:
-      - ${APPDATA_ROOT}/nextcloud/html:/var/www/html
-      - ${APPDATA_ROOT}/nextcloud/config:/var/www/html/config
-      - ${APPDATA_ROOT}/nextcloud/custom_apps:/var/www/html/custom_apps
-      - ${APPDATA_ROOT}/nextcloud/data:/var/www/html/data
+      - /volumeUSB1/usbshare/docker/appdata/nextcloud/html:/var/www/html
+      - /volumeUSB1/usbshare/docker/appdata/nextcloud/config:/var/www/html/config
+      - /volumeUSB1/usbshare/docker/appdata/nextcloud/custom_apps:/var/www/html/custom_apps
+      - /volumeUSB1/usbshare/docker/appdata/nextcloud/data:/var/www/html/data
     networks:
       - private
       - public
@@ -37,7 +37,7 @@ services:
       POSTGRES_USER: nextcloud
       POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
     volumes:
-      - ${APPDATA_ROOT}/nextcloud/postgresql:/var/lib/postgresql/data
+      - /volumeUSB1/usbshare/docker/appdata/nextcloud/postgresql:/var/lib/postgresql/data
     networks:
       private:
         aliases:
@@ -48,7 +48,7 @@ services:
     container_name: nextcloud-cache
     restart: unless-stopped
     volumes:
-      - ${APPDATA_ROOT}/nextcloud/redis:/data
+      - /volumeUSB1/usbshare/docker/appdata/nextcloud/redis:/data
     networks:
       private:
         aliases:
