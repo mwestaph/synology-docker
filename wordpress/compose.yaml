@@ -1,0 +1,81 @@
+services:
+  elwest-mariadb:
+    image: mariadb@sha256:dd9b303aed4f4890ed09f766d8ca9ddfd176c0c6f6267feff53b3192ec65a979
+    container_name: wordpress-elwest-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${ELWEST_MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${ELWEST_MARIADB_ROOT_PASSWORD}
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/wordpress/elwest/mariadb:/var/lib/mysql
+    networks:
+      elwest_private:
+        aliases:
+          - wordpress-db
+
+  elwest-wordpress:
+    image: wordpress@sha256:5a93c470ae8220fddf71f6ebe3bc94e615ddc2ae4d9810f795b830fb11c41a17
+    container_name: wordpress-elwest-wordpress
+    restart: unless-stopped
+    ports:
+      - "8144:80"
+    environment:
+      WORDPRESS_DB_HOST: wordpress-db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${ELWEST_WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: wordpress
+    depends_on:
+      elwest-mariadb:
+        condition: service_started
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/wordpress/elwest/html:/var/www/html
+    networks:
+      - elwest_private
+      - elwest_public
+
+  michael-wordpress:
+    image: wordpress:latest
+    container_name: wordpress-michael-wordpress
+    restart: unless-stopped
+    ports:
+      - "8145:80"
+    environment:
+      WORDPRESS_DB_HOST: mariadb:3306
+      WORDPRESS_DB_NAME: ${MICHAEL_WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${MICHAEL_WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${MICHAEL_WORDPRESS_DB_PASSWORD}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://michael.westapher.net');
+        define('WP_SITEURL', 'https://michael.westapher.net');
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+          $$_SERVER['HTTPS'] = 'on';
+        }
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/wordpress-michael/wordpress:/var/www/html
+    networks:
+      - michael_private
+
+  michael-mariadb:
+    image: mariadb:latest
+    container_name: wordpress-michael-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MICHAEL_WORDPRESS_DB_NAME}
+      MARIADB_USER: ${MICHAEL_WORDPRESS_DB_USER}
+      MARIADB_PASSWORD: ${MICHAEL_WORDPRESS_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MICHAEL_MARIADB_ROOT_PASSWORD}
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/wordpress-michael/mariadb:/var/lib/mysql
+    networks:
+      michael_private:
+        aliases:
+          - mariadb
+
+networks:
+  elwest_private:
+    internal: true
+  elwest_public:
+  michael_private:
+    driver: bridge
