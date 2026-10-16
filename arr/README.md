@@ -1,20 +1,20 @@
 # Arr
 
-Docker Compose stack for media management, indexing, subtitles, and related services.
+Media managers, indexers, subtitles, and related services.
 
 ## Services
 
-- Bazarr
-- FlareSolverr
-- Lidarr
-- NZBHydra2
-- Prowlarr
-- Radarr
-- Sonarr
-- Sportarr
+- Bazarr: subtitles
+- FlareSolverr: indexer challenge solving
+- Lidarr: music
+- NZBHydra2: Usenet indexer aggregation
+- Prowlarr: indexer management
+- Radarr: movies
+- Sonarr: television
+- Sportarr: sports
 
 ## Configuration
 
-`compose.yaml` is a sanitized example of the stack. Copy `.env.example` to a private `.env` file and replace every example value before using Docker Compose. Keep the real `.env` and the applications' `/config` directories out of GitHub. If deploying through Portainer, set the equivalent stack variables there.
+The current `compose.yaml` writes host paths, user IDs, and time zone directly; it does not use `.env` variables. Review those values before deploying to another host. The external `media_net` network must already exist. Keep media and downloads host paths consistent with the other stacks so imports resolve to the same files.
 
-The external Docker network `media_net` must already exist. The media and downloads variables must point to the same host directories used by the other stacks so container paths stay consistent.
+Bazarr, FlareSolverr, NZBHydra2, Prowlarr, Radarr, Sonarr, and Sportarr have WUD labels for the local Docker and SMTP triggers with a 24-hour watch delay. Sportarr also uses digest watching. Lidarr has no update trigger label in this Compose file. Keep application data and real credentials out of GitHub.

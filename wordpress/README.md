@@ -1,18 +1,14 @@
-WordPress
+# WordPress
 
-This directory contains a combined Compose file for both WordPress sites and separate examples for each site.
+One Compose stack runs the El West and Michael WordPress sites, each with its own MariaDB service.
 
-## Combined stack
+## Services
 
-`combined-compose.yaml` runs both WordPress sites and their MariaDB services. Copy this directory's `.env.example` to a private `.env`, replace the example passwords, and deploy with `docker compose -f combined-compose.yaml up -d`. In Portainer, set the same variables in the stack's environment variables instead.
+- `elwest-wordpress` and `elwest-mariadb`: port 8144, with an internal database network and a separate public network
+- `michael-wordpress` and `michael-mariadb`: port 8145, on their own bridge network
 
-The El West WordPress database password must equal `ELWEST_MARIADB_PASSWORD`. The Michael WordPress database password is shared with its MariaDB service. The Michael site URL is currently set directly in `combined-compose.yaml`.
+## Configuration
 
-## Separate examples
+The deployment file is `compose.yaml`. Copy `.env.example` to a private `.env`, set the database and root passwords, and use `docker compose up -d`; in Portainer, set the same stack variables there. `ELWEST_WORDPRESS_DB_PASSWORD` must equal `ELWEST_MARIADB_PASSWORD`. The Michael WordPress and MariaDB services both use `MICHAEL_WORDPRESS_DB_PASSWORD`.
 
-- `elwest/` — WordPress with a MariaDB service on an internal private network.
-- `michael/` — WordPress with a MariaDB service and a configurable site URL.
-
-Each directory has its own `compose.yaml` and `.env.example`. Copy the relevant example to a private `.env` and replace every example value before deploying. The separate `michael/` example uses `WORDPRESS_SITE_URL` to configure its domain.
-
-Keep real passwords and application data out of GitHub.
+The Michael site's `WP_HOME` and `WP_SITEURL` are set directly in `compose.yaml`, along with HTTPS handling for a reverse proxy. Database and site files are mounted from separate paths on `/volumeUSB1/usbshare`. Keep real passwords and application data out of GitHub.

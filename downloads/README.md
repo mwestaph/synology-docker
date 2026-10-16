@@ -13,6 +13,6 @@ Docker Compose stack for download clients and VPN routing.
 
 `compose.yaml` is a sanitized example of the stack. Copy `.env.example` to a private `.env` file and replace every example value before using Docker Compose. Keep the real `.env` out of GitHub. If deploying through Portainer, set the equivalent stack variables there.
 
-The external Docker network `media_net` must already exist. qBitrr reads its private `config.toml` from the mounted appdata directory; that file is not included here. qBitrr and qBittorrent both mount the downloads directory at `/downloads` so their paths match.
+The external Docker network `media_net` must already exist. qBittorrent shares Gluetun's network namespace, so its published ports are configured on Gluetun. qBitrr reads its private `config.toml` from the mounted appdata directory; that file is not included here. qBitrr and qBittorrent both mount the downloads directory at `/downloads` so their paths match. Set qBitrr's client credentials and Arr API keys privately.
 
-The qBittorrent service also expects a private `discord-webhook.sh` file in its appdata `scripts` directory. Remove that bind mount if you do not use the script.
+The qBittorrent service also expects a private `discord-webhook.sh` file in its appdata `scripts` directory. Remove that bind mount if you do not use the script. qBittorrent has a Watchtower opt-in label; qBitrr has WUD digest watching and the local Docker update trigger.

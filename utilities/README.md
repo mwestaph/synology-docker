@@ -1,18 +1,20 @@
-# Media Processing
+# Utilities
 
-Docker Compose stack for the media server, DVR recordings, file processing, and viewing statistics.
+Monitoring, dashboards, duplicate-file management, and container update services.
 
 ## Services
 
-- Channels DVR
-- FileFlows
-- Plex
-- Tautulli
+- Beszel and Beszel Agent: system monitoring
+- Dashdot: host dashboard
+- dupeGuru: duplicate-file management
+- Homarr: application dashboard
+- Watchtower: updates for containers with its opt-in label
+- WUD: image watching, SMTP notifications, and opt-in local Docker updates
 
 ## Configuration
 
-`compose.yaml` is a sanitized example of the current stack. Copy `.env.example` to a private `.env` file and replace every example value before using Docker Compose. Keep the real `.env` and application configuration directories out of GitHub. If deploying through Portainer, set the equivalent stack variables there.
+Copy `.env.example` to a private `.env` and replace every example value, or set the variables in Portainer. Beszel Agent needs its hub key and token. Homarr needs an encryption key. Watchtower needs its notification address and SMTP app password. WUD needs its administrator and SMTP credentials. Keep credentials and application data out of GitHub.
 
-The external Docker network `media_net` must already exist. Channels DVR and Plex use host networking and `/dev/dri` for hardware access. FileFlows uses the host's Docker socket and a temporary directory that must exist on the host. Review those mounts and permissions before reusing this example.
+Watchtower is scheduled for 3:30 a.m. `America/Los_Angeles` and only acts on containers labeled `com.centurylinklabs.watchtower.enable=true`. WUD's local watcher runs at 4:00 a.m. in the same time zone; its Docker trigger has `INCLUDEBYDEFAULT=false`, so only explicitly opted-in containers receive automatic updates. WUD also uses SMTP for notifications. The two updater services mount the Docker socket, so review their labels and schedules together.
 
-Plex mounts the media directory at `/volume1/Plex` inside its container to preserve the current library paths. If your Plex libraries use another internal path, adjust that mount before deploying.
+Beszel, Beszel Agent, Dashdot, and dupeGuru have Watchtower opt-in labels. Homarr has a WUD local Docker trigger label. Dashdot, dupeGuru, and Homarr use the external `media_net` network; it must already exist. Beszel and WUD store their state under `/volumeUSB1/usbshare`, and Beszel Agent reads monitoring paths from both internal and USB storage.
