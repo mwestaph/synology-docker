@@ -1,11 +1,69 @@
 services:
-  calibre:
-    image: lscr.io/linuxserver/calibre@sha256:2e8a99a474d42d1ca13970d74ab83da5da93a1cf0c75e194ce696eceb3e20daa
-    container_name: books-calibre
+
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: bookorbit-db
+    restart: unless-stopped
     environment:
-      PGID: ${PGID}
-      PUID: ${PUID}
-      TZ: ${TZ}
+      POSTGRES_USER: bookorbit
+      POSTGRES_PASSWORD: ${BOOKORBIT_DB_PASSWORD}
+      POSTGRES_DB: bookorbit
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/bookorbit/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookorbit -d bookorbit"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - bookorbit_private
+
+  bookorbit:
+    image: ghcr.io/bookorbit/bookorbit:latest
+    container_name: bookorbit
+    restart: unless-stopped
+    labels:
+     - "wud.watch.digest=true"
+     - "wud.trigger.docker.local.enabled=true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8150:3000"
+    environment:
+      APP_URL: "http://192.168.1.10:8150"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: bookorbit
+      POSTGRES_PASSWORD: ${BOOKORBIT_DB_PASSWORD}
+      POSTGRES_DB: bookorbit
+      JWT_SECRET: ${BOOKORBIT_JWT_SECRET}
+      SETUP_BOOTSTRAP_TOKEN: ${BOOKORBIT_SETUP_BOOTSTRAP_TOKEN}
+      BOOK_REQUEST_ENCRYPTION_KEY: ${BOOKORBIT_REQUEST_ENCRYPTION_KEY}
+      PORT: "3000"
+      BOOKS_PATH: /books
+      LIBRARY_BROWSE_ROOT: /books
+      PUID: "1026"
+      PGID: "100"
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/bookorbit/app:/data
+      - /volume1/Plex/BookOrbit:/books
+      - /volume1/Downloads:/downloads
+    networks:
+      - bookorbit_private
+      - media_net
+
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: books-calibre
+    labels:
+     - "wud.watch.digest=true"
+     - "wud.trigger.docker.local.enabled=true"
+    environment:
+      PGID: "100"
+      PUID: "1024"
+      TZ: America/Los_Angeles
     networks:
       - media_net
     ports:
@@ -13,59 +71,71 @@ services:
       - "8143:8181"
     restart: unless-stopped
     volumes:
-      - ${APPDATA_ROOT}/calibre:/config
-      - ${IMPORT_ROOT}:/import
-      - ${BOOKS_ROOT}:/books
+      - /volumeUSB1/usbshare/docker/appdata/calibre:/config
+      - /volume1/Downloads/qbittorrent/completed:/import
+      - /volume1/Plex/Books:/books
 
   kapowarr:
-    image: mrcas/kapowarr@sha256:d455797e4f2c5b1a8ccc5ce05c427f1af2179451bb1af195ca3fa8c3e928623b
+    image: mrcas/kapowarr:latest
     container_name: books-kapowarr
+    labels:
+     - "wud.watch.digest=true"
+     - "wud.trigger.docker.local.enabled=true"
     environment:
-      PGID: ${PGID}
-      PUID: ${PUID}
-      TZ: ${TZ}
+      PGID: "100"
+      PUID: "1024"
+      TZ: America/Los_Angeles
     networks:
       - media_net
     ports:
       - "8136:5656"
     restart: unless-stopped
     volumes:
-      - ${APPDATA_ROOT}/kapowarr:/app/db
-      - ${DOWNLOADS_ROOT}:/app/temp_downloads
-      - ${COMICS_ROOT}:/comics
+      - /volumeUSB1/usbshare/docker/appdata/kapowarr:/app/db
+      - /volume1/Downloads:/app/temp_downloads
+      - /volume1/Plex/Comics:/comics
 
   komga:
-    image: gotson/komga@sha256:6c2a967bbe9acefd05933b2eb498f34afe96a83c6f7f8ab0acb512a1bb3ab50f
+    image: gotson/komga:latest
     container_name: books-komga
+    labels:
+     - "wud.watch.digest=true"
+     - "wud.trigger.docker.local.enabled=true"
     environment:
-      TZ: ${TZ}
+      TZ: America/Los_Angeles
     networks:
       - media_net
     ports:
       - "25600:25600"
     restart: unless-stopped
     volumes:
-      - ${APPDATA_ROOT}/komga:/config
-      - ${COMICS_ROOT}:/comics
+      - /volumeUSB1/usbshare/docker/appdata/komga:/config
+      - /volume1/Plex/Comics:/comics
 
   lazylibrarian:
-    image: lscr.io/linuxserver/lazylibrarian@sha256:8fd495824e5625764d74e3f385f69c81c2b1fed0903fb3aa7e2e8b4aae5b22eb
+    image: lscr.io/linuxserver/lazylibrarian:latest
     container_name: books-lazylibrarian
+    labels:
+     - "wud.watch.digest=true"
+     - "wud.trigger.docker.local.enabled=true"
     environment:
-      PGID: ${PGID}
-      PUID: ${PUID}
-      TZ: ${TZ}
+      PGID: "100"
+      PUID: "1024"
+      TZ: America/Los_Angeles
     networks:
       - media_net
     ports:
       - "8140:5299"
     restart: unless-stopped
     volumes:
-      - ${APPDATA_ROOT}/lazylibrarian:/config
-      - ${DOWNLOADS_ROOT}:/downloads
-      - ${AUDIOBOOKS_ROOT}:/audiobooks
-      - ${BOOKS_ROOT}:/books
+      - /volumeUSB1/usbshare/docker/appdata/lazylibrarian:/config
+      - /volume1/Downloads:/downloads
+      - /volume1/Plex/Audiobooks:/audiobooks
+      - /volume1/Plex/Books:/books
 
 networks:
   media_net:
     external: true
+  bookorbit_private:
+    internal: true
+
