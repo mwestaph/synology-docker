@@ -1,30 +1,44 @@
 services:
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
+    labels:
+     - "wud.trigger.include=docker.local,smtp.gmail"
+     - "wud.watch.delay=24h"
     restart: unless-stopped
     stop_grace_period: 30s
+
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: "1024"
+      PGID: "100"
+      TZ: America/Los_Angeles
+
     ports:
       - "8135:6767"
+
     volumes:
-      - ${APPDATA_ROOT}/bazarr:/config
-      - ${MOVIES_ROOT}:/movies
-      - ${TV_ROOT}:/tv
+      - /volumeUSB1/usbshare/docker/appdata/bazarr:/config
+      - /volume1/Plex/Movies:/movies
+      - /volume1/Plex/TV:/tv
+
     networks:
       - media_net
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
+
     restart: unless-stopped
+    labels:
+     - "wud.trigger.include=docker.local,smtp.gmail"
+     - "wud.watch.delay=24h"
+
     environment:
       LOG_LEVEL: info
       LOG_HTML: "false"
-      TZ: ${TZ}
+      TZ: America/Los_Angeles
+
     ports:
       - "8092:8191"
+
     networks:
       - media_net
 
@@ -32,118 +46,151 @@ services:
     image: ghcr.io/hotio/lidarr:pr-plugins
     restart: unless-stopped
     stop_grace_period: 30s
+
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: "1024"
+      PGID: "100"
+      TZ: America/Los_Angeles
+
     ports:
       - "8131:8686"
+
     volumes:
-      - ${APPDATA_ROOT}/lidarr:/config
-      - ${MUSIC_ROOT}:/music
-      - "${HOLIDAY_MUSIC_ROOT}:/holiday music"
-      - ${MUSIC_INCOMING_ROOT}:/Incoming
-      - ${DOWNLOADS_ROOT}:/downloads
+      - /volumeUSB1/usbshare/docker/appdata/lidarr:/config
+      - /volume1/Plex/Audio/Music:/music
+      - "/volume1/Plex/Audio/Holiday Music:/holiday music"
+      - /volume1/Plex/Audio/_Incoming:/Incoming
+      - /volume1/Downloads:/downloads
+
     networks:
       - media_net
 
   nzbhydra2:
     image: ghcr.io/linuxserver/nzbhydra2
     restart: unless-stopped
+    stop_grace_period: 120s
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: "1024"
+      PGID: "100"
+      TZ: America/Los_Angeles
     labels:
-      - "wud.trigger.include=docker.local"
+     - "wud.trigger.include=docker.local,smtp.gmail"
+     - "wud.watch.delay=24h"
     ports:
       - "5076:5076"
+
     volumes:
-      - ${APPDATA_ROOT}/nzbhydra2:/config
+      - /volumeUSB1/usbshare/docker/appdata/nzbhydra2:/config
+
     networks:
       - media_net
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
+    labels:
+     - "wud.trigger.include=docker.local,smtp.gmail"
+     - "wud.watch.delay=24h"
     restart: unless-stopped
     stop_grace_period: 30s
+
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: "1024"
+      PGID: "100"
+      TZ: America/Los_Angeles
       PROWLARR__SERVER__PORT: "9696"
       PROWLARR__SERVER__BINDADDRESS: "*"
+
     ports:
       - "8130:9696"
+
     volumes:
-      - ${APPDATA_ROOT}/prowlarr:/config
-      - ${DOWNLOADS_ROOT}:/downloads
+      - /volumeUSB1/usbshare/docker/appdata/prowlarr:/config
+      - /volume1/Downloads:/downloads
+
     networks:
       - media_net
-
+      
   radarr:
     image: lscr.io/linuxserver/radarr:latest
+    labels:
+     - "wud.trigger.include=docker.local,smtp.gmail"
+     - "wud.watch.delay=24h"
     restart: unless-stopped
     stop_grace_period: 30s
+
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: "1024"
+      PGID: "100"
+      TZ: America/Los_Angeles
+
     ports:
       - "8132:7878"
+
     volumes:
-      - ${APPDATA_ROOT}/radarr:/config
-      - ${DOWNLOADS_ROOT}:/downloads
-      - ${MOVIES_ROOT}:/movies
-      - ${BOXING_ROOT}:/boxing
-      - ${KICKBOXING_ROOT}:/kickboxing
-      - ${MMA_ROOT}:/mma
-      - ${WRESTLING_ROOT}:/wrestling
+      - /volumeUSB1/usbshare/docker/appdata/radarr:/config
+      - /volume1/Downloads:/downloads
+      - /volume1/Plex/Movies:/movies
+      - /volume1/Plex/Boxing:/boxing
+      - /volume1/Plex/Kickboxing:/kickboxing
+      - /volume1/Plex/MMA:/mma
+      - /volume1/Plex/Wrestling:/wrestling
+
     networks:
       - media_net
-
+  
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
+    labels:
+     - "wud.trigger.include=docker.local,smtp.gmail"
+     - "wud.watch.delay=24h"
     restart: unless-stopped
     stop_grace_period: 30s
+
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      PUID: "1024"
+      PGID: "100"
+      TZ: America/Los_Angeles
+
     ports:
       - "8133:8989"
+
     volumes:
-      - ${APPDATA_ROOT}/sonarr:/config
-      - ${TV_ROOT}:/tv
-      - ${DOWNLOADS_ROOT}:/downloads
-      - ${MEDIA_ROOT}:/media
+      - /volumeUSB1/usbshare/docker/appdata/sonarr:/config
+      - /volume1/Plex/TV:/tv
+      - /volume1/Downloads:/downloads
+      - /volume1/Plex:/media
+
     networks:
       - media_net
 
   sportarr:
-    image: sportarr/sportarr:latest@sha256:4d2165ed25840a2d80ca655c616e754a0867b551f21c55dff4eab15529098399
+    image: sportarr/sportarr:latest
+    labels:
+      - wud.watch.digest=true
+      - "wud.trigger.include=docker.local,smtp.gmail"
+      - "wud.watch.delay=24h"
     restart: unless-stopped
     ports:
       - "1867:1867"
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
+      PUID: "1024"
+      PGID: "100"
       UMASK: "022"
-      TZ: ${TZ}
+      TZ: America/Los_Angeles
     volumes:
-      - ${APPDATA_ROOT}/sportarr/config:/config
-      - ${APPDATA_ROOT}/sportarr/data:/data
-      - ${DOWNLOADS_ROOT}:/downloads
-      - ${SPORTS_ROOT}:/sports
-      - ${UFC_ROOT}:/UFC
-      - ${NFL_ROOT}:/NFL
-      - ${NCAAF_ROOT}:/NCAAF
-      - "${WWE_PPV_ROOT}:/WWE PPV"
-      - "${AEW_PPV_ROOT}:/AEW PPV"
-      - ${AAA_ROOT}:/AAA
+      - /volumeUSB1/usbshare/docker/appdata/sportarr/config:/config
+      - /volumeUSB1/usbshare/docker/appdata/sportarr/data:/data
+      - /volume1/Downloads:/downloads
+      - /volume1/Plex/Sports:/sports
+      - /volume1/Plex/MMA/UFC:/UFC
+      - /volume1/Plex/Sports/NFL:/NFL
+      - /volume1/Plex/Sports/NCAAF:/NCAAF
+      - "/volume1/Plex/Wrestling/WWE PPV:/WWE PPV"
+      - "/volume1/Plex/Wrestling/AEW PPV:/AEW PPV"
+      - /volume1/Plex/Wrestling/AAA:/AAA
     networks:
       - media_net
-
+      
 networks:
   media_net:
     external: true
