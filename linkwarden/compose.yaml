@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://linkwarden:linkwarden@db:5432/linkwarden
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
     depends_on:
@@ -27,7 +27,7 @@ services:
       POSTGRES_USER: linkwarden
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ${APPDATA_ROOT}/linkwarden/postgresql:/var/lib/postgresql/data
+      - /volumeUSB1/usbshare/docker/appdata/linkwarden/postgresql:/var/lib/postgresql/data
     networks:
       private:
         aliases:
