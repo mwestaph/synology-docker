@@ -13,4 +13,4 @@ Docker Compose stack for self-hosted bookmark management and archiving.
 
 `NEXTAUTH_URL` must be the URL used to access Linkwarden. Compose creates an internal `private` network for PostgreSQL and a separate `public` network for Linkwarden. Linkwarden has a WUD local Docker trigger label; PostgreSQL does not.
 
-**Credential mismatch to resolve before redeploying:** `compose.yaml` currently embeds the database credential in `DATABASE_URL`, while the PostgreSQL service reads `POSTGRES_PASSWORD` from the environment. Those values must match. Changing `POSTGRES_PASSWORD` alone will not change Linkwarden's connection string. The Compose file is left unchanged here.
+`POSTGRES_PASSWORD` supplies the password for both PostgreSQL and Linkwarden's `DATABASE_URL`. Keep the real value private and use a URL-safe value because Compose inserts it into a connection URL. The password previously embedded in this repository remains in Git history; changing this file does not rotate the running database password. Changing `POSTGRES_PASSWORD` alone also does not change a password already stored in PostgreSQL's data directory.
