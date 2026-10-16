@@ -1,13 +1,13 @@
 services:
   cloudflared:
-    image: cloudflare/cloudflared:latest@sha256:0aa26e284f05e6c77ae375b8c9c11d9eb6a448fb7bcd8d40f31cb6176189eb38
+    image: cloudflare/cloudflared:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: edge-cloudflared
     restart: unless-stopped
     command: tunnel --metrics 0.0.0.0:8082 --no-autoupdate run
     environment:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN}
-    volumes:
-      - ${APPDATA_ROOT}/edge/cloudflared:/etc/cloudflared
     ports:
       - "8082:8082"
     networks:
@@ -18,11 +18,11 @@ services:
     container_name: edge-pihole
     restart: unless-stopped
     environment:
-      TZ: ${TZ}
+      TZ: America/Los_Angeles
       WEBPASSWORD: ${WEBPASSWORD}
     volumes:
-      - ${APPDATA_ROOT}/edge/pihole:/etc/pihole
-      - ${APPDATA_ROOT}/edge/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+     - /volume1/docker/appdata-recovery/edge/pihole:/etc/pihole
+     - /volume1/docker/appdata-recovery/edge/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     ports:
       - "53:53/tcp"
       - "53:53/udp"
