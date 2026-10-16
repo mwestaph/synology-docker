@@ -1,12 +1,18 @@
-# WordPress
+WordPress
 
-Two separate WordPress and MariaDB stacks. These sanitized examples record the current setup and can be updated independently.
+This directory contains a combined Compose file for both WordPress sites and separate examples for each site.
 
-## Stacks
+## Combined stack
+
+`combined-compose.yaml` runs both WordPress sites and their MariaDB services. Copy this directory's `.env.example` to a private `.env`, replace the example passwords, and deploy with `docker compose -f combined-compose.yaml up -d`. In Portainer, set the same variables in the stack's environment variables instead.
+
+The El West WordPress database password must equal `ELWEST_MARIADB_PASSWORD`. The Michael WordPress database password is shared with its MariaDB service. The Michael site URL is currently set directly in `combined-compose.yaml`.
+
+## Separate examples
 
 - `elwest/` — WordPress with a MariaDB service on an internal private network.
 - `michael/` — WordPress with a MariaDB service and a configurable site URL.
 
-Each directory contains its own `compose.yaml` and `.env.example`. Copy the relevant `.env.example` to a private `.env` file and replace every example value before using Docker Compose. Keep real passwords and application data out of GitHub. If deploying through Portainer, set the equivalent stack variables there.
+Each directory has its own `compose.yaml` and `.env.example`. Copy the relevant example to a private `.env` and replace every example value before deploying. The separate `michael/` example uses `WORDPRESS_SITE_URL` to configure its domain.
 
-The WordPress database password must match the MariaDB user password in each stack. The `michael` example uses `WORDPRESS_SITE_URL` so the real domain does not need to appear in this public repository.
+Keep real passwords and application data out of GitHub.
