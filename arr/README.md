@@ -1,4 +1,4 @@
-Arr
+# Arr
 
 Docker Compose stack for media management, indexing, subtitles, and related services.
 
