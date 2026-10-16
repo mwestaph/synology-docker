@@ -6,27 +6,25 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
-      FIREWALL: "on"
-      FIREWALL_INPUT_PORTS: "8090,8080,9999,8888"
-      FIREWALL_OUTBOUND_SUBNETS: ${LAN_SUBNET}
-      VPN_TYPE: wireguard
-      WIREGUARD_ENDPOINT_IP: ${WIREGUARD_ENDPOINT_IP}
-      WIREGUARD_ENDPOINT_PORT: ${WIREGUARD_ENDPOINT_PORT}
-      WIREGUARD_PUBLIC_KEY: ${WIREGUARD_PUBLIC_KEY}
-      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY}
-      WIREGUARD_ADDRESSES: ${WIREGUARD_ADDRESSES}
-      SERVER_IPS: ${WIREGUARD_ENDPOINT_IP}
-      VPN_SERVICE_PROVIDER: custom
-      TZ: ${TZ}
-      VPN_PORT_FORWARDING: "on"
-      VPN_PORT_FORWARDING_PROVIDER: protonvpn
-      VPN_PORT_FORWARDING_STATUS_FILE: /tmp/gluetun/forwarded_port
-      HTTP_HEALTH_SERVER_ADDRESS: ":9999"
-      DNS_ADDRESS: 1.1.1.1
-      DOT: "off"
-      HEALTH_TARGET_ADDRESS: cloudflare.com:443
-      HTTPPROXY: "on"
-      HTTPPROXY_LOG: "on"
+      - FIREWALL=on
+      - FIREWALL_INPUT_PORTS=8090,8080,9999,8888,8000
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
+      - VPN_TYPE=wireguard
+      - WIREGUARD_ENDPOINT_IP=149.22.88.149
+      - WIREGUARD_ENDPOINT_PORT=51820
+      - WIREGUARD_PUBLIC_KEY=${WIREGUARD_PUBLIC_KEY}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=10.2.0.2/32
+      - SERVER_IPS=149.22.88.149
+      - VPN_SERVICE_PROVIDER=custom
+      - TZ=America/Los_Angeles
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_PROVIDER=protonvpn
+      - VPN_PORT_FORWARDING_STATUS_FILE=/tmp/gluetun/forwarded_port
+      - HTTP_HEALTH_SERVER_ADDRESS=:9999
+      - HEALTH_TARGET_ADDRESS=cloudflare.com:443
+      - HTTPPROXY=on
+      - HTTPPROXY_LOG=on
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:9999/"]
       timeout: 5s
@@ -38,41 +36,52 @@ services:
       - "9999:9999"
       - "8888:8888"
     volumes:
-      - ${APPDATA_ROOT}/gluetun:/gluetun
+      - /volumeUSB1/usbshare/docker/appdata/gluetun:/gluetun
     networks:
       - media_net
     restart: unless-stopped
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls445
+    image: lscr.io/linuxserver/qbittorrent:latest
     network_mode: "service:gluetun"
     depends_on:
       gluetun:
         condition: service_healthy
     labels:
-      com.centurylinklabs.watchtower.enable: "false"
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
-      WEBUI_PORT: "8090"
+      - PUID=1024
+      - PGID=100
+      - TZ=America/Los_Angeles
+      - WEBUI_PORT=8090
     volumes:
-      - ${APPDATA_ROOT}/qbittorrent:/config
-      - ${APPDATA_ROOT}/qbittorrent/scripts/discord-webhook.sh:/scripts/discord-webhook.sh:ro
-      - ${DOWNLOADS_ROOT}:/downloads
-      - ${AUDIO_ROOT}:/audio
-      - ${WRESTLING_ROOT}:/wrestling
-      - ${MMA_ROOT}:/mma
+      - /volumeUSB1/usbshare/docker/appdata/qbittorrent:/config
+      - /volumeUSB1/usbshare/docker/appdata/qbittorrent/scripts/discord-webhook.sh:/scripts/discord-webhook.sh:ro
+      - /volume1/Downloads:/downloads
+      - /volume1/Plex/Audio:/audio
+      - /volume1/Plex/Wrestling:/wrestling
+      - /volume1/Plex/MMA:/mma
     restart: unless-stopped
 
   qbitrr:
     image: feramance/qbitrr:latest
-    # Keep the real config.toml private in ${APPDATA_ROOT}/qbitrr.
     environment:
-      TZ: ${TZ}
+      - TZ=America/Los_Angeles
+      - QBIT_HOST=http://gluetun:8090
+      - QBIT_USERNAME=${QBIT_USERNAME}
+      - QBIT_PASSWORD=${QBIT_PASSWORD}
+      - SONARR_HOST=http://sonarr:8989
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_HOST=http://radarr:7878
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - LIDARR_HOST=http://lidarr:8686
+      - LIDARR_API_KEY=${LIDARR_API_KEY}
+    labels:
+     - "wud.tag.include=latest"
+     - "wud.watch.digest=true"
+     - "wud.trigger.docker.local.enabled=true"
     volumes:
-      - ${APPDATA_ROOT}/qbitrr:/config
-      - ${DOWNLOADS_ROOT}:/downloads
+      - /volumeUSB1/usbshare/docker/appdata/qbitrr:/config
     ports:
       - "6969:6969"
     networks:
@@ -82,16 +91,38 @@ services:
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd
     environment:
-      PUID: ${PUID}
-      PGID: ${PGID}
-      TZ: ${TZ}
+      - PUID=1024
+      - PGID=100
+      - TZ=America/Los_Angeles
     volumes:
-      - ${APPDATA_ROOT}/sabnzbd:/config
-      - ${DOWNLOADS_ROOT}:/downloads
+      - /volumeUSB1/usbshare/docker/appdata/sabnzbd:/config
+      - /volume1/Downloads:/downloads
     ports:
       - "8091:8080"
     networks:
       - media_net
+    restart: unless-stopped
+
+  pwtorrents-recovery:
+    image: python:3.14-alpine3.24
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_started
+    user: "1024:100"
+    read_only: true
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    command: ["python", "-u", "/app/recover.py"]
+    volumes:
+      - /volumeUSB1/usbshare/docker/appdata/qbittorrent/pwtorrents-recovery/recover.py:/app/recover.py:ro
+      - /volumeUSB1/usbshare/docker/appdata/qbittorrent/pwtorrents-recovery/credentials.toml:/config/credentials.toml:ro
     restart: unless-stopped
 
 networks:
